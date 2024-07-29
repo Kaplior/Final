@@ -34,6 +34,10 @@ jobs:
         with:
           source: ./.github/ansible/
 
+      - name: Fix permissions on SSH private key
+        run: |
+          chmod 600 .github/ansible/db.pem
+
       - name: Run Ansible playbook
         uses: appleboy/ssh-action@master
         with:
