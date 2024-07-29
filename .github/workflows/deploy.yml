@@ -41,4 +41,5 @@ jobs:
           username: ${{ secrets.ANSIBLE_USER }}
           key: ${{ secrets.ANSIBLE_PRIVATE_KEY }}
           script: |
+            export ANSIBLE_HOST_KEY_CHECKING=false
             ansible-playbook -i /home/ec2-user/ansible/hosts /home/ec2-user/ansible/flask_app.yml
