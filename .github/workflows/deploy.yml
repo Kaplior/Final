@@ -24,6 +24,15 @@ jobs:
       - name: Push Docker image
         run: docker push kaplior/final_container:latest
 
+      - name: Clean old files from Ansible directory
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.ANSIBLE_HOST }}
+          username: ${{ secrets.ANSIBLE_USER }}
+          key: ${{ secrets.ANSIBLE_PRIVATE_KEY }}
+          script: |
+            rm -rf /home/ec2-user/ansible/*
+
       - name: Copy playbook, inventory, and SSH key to Ansible server
         uses: easingthemes/ssh-deploy@main
         env:
