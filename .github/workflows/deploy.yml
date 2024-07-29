@@ -1,0 +1,44 @@
+name: Deploy Docker Container
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t kaplior/final_container:latest ./Docker
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+
+      - name: Push Docker image
+        run: docker push kaplior/final_container:latest
+
+      - name: Copy playbook, inventory, and SSH key to Ansible server
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.ANSIBLE_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.ANSIBLE_HOST }}
+          REMOTE_USER: ${{ secrets.ANSIBLE_USER }}
+          TARGET: /home/ec2-user/ansible/
+        with:
+          source: ./.github/ansible/
+
+      - name: Run Ansible playbook
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.ANSIBLE_HOST }}
+          username: ${{ secrets.ANSIBLE_USER }}
+          key: ${{ secrets.ANSIBLE_PRIVATE_KEY }}
+          script: |
+            ansible-playbook -i /home/ec2-user/ansible/hosts /home/ec2-user/ansible/flask_app.yml

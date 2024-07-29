@@ -1,0 +1,34 @@
+---
+- hosts: amazon_servers
+  become: true
+  tasks:
+    - name: Ensure Docker is installed
+      dnf:
+        name: docker
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Stop Docker container if running
+      command: docker stop final_container
+      ignore_errors: yes
+
+    - name: Remove Docker container if it exists
+      command: docker rm final_container
+      ignore_errors: yes
+
+    - name: Build Docker image
+      command: docker pull kaplior/final_container:latest
+
+    - name: Run Docker container
+      docker_container:
+        name: final_container
+        image: kaplior/final_container:latest
+        state: started
+        restart_policy: always
+        published_ports:
+          - 5000:5000
