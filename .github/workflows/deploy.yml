@@ -44,8 +44,14 @@ jobs:
           source: ./.github/ansible/
 
       - name: Fix permissions on SSH private key
-        run: |
-          chmod 600 .github/ansible/db.pem
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.ANSIBLE_HOST }}
+          username: ${{ secrets.ANSIBLE_USER }}
+          key: ${{ secrets.ANSIBLE_PRIVATE_KEY }}
+          script: |
+            chmod 600 /home/ec2-user/ansible/db.pem
+            ls -l /home/ec2-user/ansible/db.pem
 
       - name: Run Ansible playbook
         uses: appleboy/ssh-action@master
@@ -54,5 +60,4 @@ jobs:
           username: ${{ secrets.ANSIBLE_USER }}
           key: ${{ secrets.ANSIBLE_PRIVATE_KEY }}
           script: |
-            export ANSIBLE_HOST_KEY_CHECKING=false
             ansible-playbook -i /home/ec2-user/ansible/hosts /home/ec2-user/ansible/flask_app.yml
