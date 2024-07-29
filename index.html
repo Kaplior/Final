@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flask Test</title>
+    <script>
+        async function sendName() {
+            const name = document.getElementById('name').value;
+            const response = await fetch('http://192.168.100.82:5000', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: name })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('response').value = data.message;
+            } else {
+                document.getElementById('response').value = 'Error: ' + response.status;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Enter Your Name</h1>
+    <input type="text" id="name" placeholder="Enter your name">
+    <button onclick="sendName()">Send</button>
+    <br><br>
+    <input type="text" id="response" placeholder="Response from server" readonly>
+</body>
+</html>
