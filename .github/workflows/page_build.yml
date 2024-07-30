@@ -1,0 +1,41 @@
+name: Deploy Nginx Page
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy_page:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create page directory on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.ANSIBLE_HOST }}
+          username: ${{ secrets.ANSIBLE_USER }}
+          key: ${{ secrets.ANSIBLE_PRIVATE_KEY }}
+          script: mkdir -p /home/ec2-user/page
+
+      - name: Copy index.html to server
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.ANSIBLE_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.ANSIBLE_HOST }}
+          REMOTE_USER: ${{ secrets.ANSIBLE_USER }}
+          TARGET: /home/ec2-user/page/
+        with:
+          source: ./index.html
+
+      - name: Move index.html to Nginx directory
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.ANSIBLE_HOST }}
+          username: ${{ secrets.ANSIBLE_USER }}
+          key: ${{ secrets.ANSIBLE_PRIVATE_KEY }}
+          script: |
+            sudo mv /home/ec2-user/page/index.html /usr/share/nginx/html/index.html
+            sudo systemctl restart nginx
